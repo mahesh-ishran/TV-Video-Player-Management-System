@@ -1,0 +1,12 @@
+{
+  "id": "com.example.videoreceiver",
+  "version": "1.0.0",
+  "vendor": "My Company",
+  "type": "web",
+  "main": "index.html",
+  "title": "Video Receiver",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "resolution": "1920x1080",
+  "bgImage": "bg.png"
+}
