@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Video Receiver</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        h1 {
+            font-size: 48px;
+            margin: 0 0 20px 0;
+        }
+        
+        .status {
+            font-size: 24px;
+            margin: 20px 0;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        
+        .info {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        
+        #videoPlayer {
+            display: none;
+            max-width: 90%;
+            max-height: 70vh;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📺 Video Receiver App</h1>
+        <div class="status pulse">✅ App Running Successfully!</div>
+        <div class="info">App ID: <span id="appId">Loading...</span></div>
+        <div class="info">Version: 1.0.0 (Phase 1 - Basic Test)</div>
+        <div class="info" id="tvInfo">TV Info: Loading...</div>
+        
+        <video id="videoPlayer" controls></video>
+    </div>
+
+    <script src="webOSTV.js"></script>
+    <script>
+        // Initialize app
+        console.log('App started successfully!');
+        
+        // Get App ID
+        try {
+            const appId = webOS.fetchAppId();
+            document.getElementById('appId').textContent = appId;
+        } catch(e) {
+            document.getElementById('appId').textContent = 'N/A';
+            console.log('Could not fetch app ID:', e);
+        }
+        
+        // Get TV Info
+        try {
+            const deviceInfo = webOS.deviceInfo;
+            if (deviceInfo) {
+                document.getElementById('tvInfo').textContent = 
+                    `TV: ${deviceInfo.modelName || 'Unknown'} | webOS: ${deviceInfo.version || 'N/A'}`;
+            }
+        } catch(e) {
+            console.log('Could not fetch device info:', e);
+        }
+        
+        // Log platform info
+        console.log('Platform Info:', webOS.platform);
+        console.log('Device Info:', webOS.deviceInfo);
+        
+        // Test video playback (you can add a sample video URL here later)
+        // document.getElementById('videoPlayer').src = 'YOUR_VIDEO_URL';
+    </script>
+</body>
+</html>
