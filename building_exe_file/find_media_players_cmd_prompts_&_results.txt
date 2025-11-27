@@ -1,0 +1,43 @@
+C:\Users\asus\Downloads\project-4\building_exe_file>python find_media_players.py
+================================================================================
+WINDOWS MEDIA PLAYER FINDER
+================================================================================
+
+
+[1] Checking common installation directories...
+--------------------------------------------------------------------------------
+Searching common installation directories...
+
+[2] Checking Windows Registry...
+--------------------------------------------------------------------------------
+Searching Windows Registry...
+
+[3] Checking system PATH...
+--------------------------------------------------------------------------------
+Searching system PATH...
+
+================================================================================
+RESULTS
+================================================================================
+
+Found 4 media player(s):
+
+1. GOM Player
+   Location: C:\Program Files (x86)\GRETECH\GomPlayer\GOM.exe
+   Size: 3.69 MB
+
+2. Spotify
+   Location: C:\Users\asus\AppData\Local\Microsoft\WindowsApps\Spotify.exe
+   Size: 0.00 MB
+
+3. VLC Media Player
+   Location: C:\Program Files\VLC\vlc.exe
+   Size: 0.94 MB
+
+4. Windows Media Player
+   Location: C:\Program Files\Windows Media Player\wmplayer.exe
+   Size: 0.19 MB
+
+================================================================================
+
+Press Enter to exit...
