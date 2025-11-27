@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Monitoring Dashboard - Firebase</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .connection-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .connection-status.connected {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .connection-status.disconnected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card.success .value {
+            color: #10b981;
+        }
+
+        .stat-card.danger .value {
+            color: #ef4444;
+        }
+
+        .stat-card.warning .value {
+            color: #f59e0b;
+        }
+
+        .tv-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .tv-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tv-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .tv-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .tv-card.offline::before {
+            background: #ef4444;
+        }
+
+        .tv-card.error::before {
+            background: #f59e0b;
+        }
+
+        .tv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .tv-id {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.playing {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-badge.downloading {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-badge.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-badge.offline {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .status-badge.idle {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .tv-info {
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #111827;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .video-name {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .video-name-label {
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .video-name-value {
+            font-size: 14px;
+            color: #111827;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .error-message-label {
+            font-size: 11px;
+            color: #991b1b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .error-message-value {
+            font-size: 13px;
+            color: #7f1d1d;
+            font-weight: 500;
+        }
+
+        .refresh-info {
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            margin-top: 30px;
+            opacity: 0.8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+            font-size: 18px;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .empty-state h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .setup-warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .setup-warning h3 {
+            color: #92400e;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .setup-warning p {
+            color: #78350f;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .setup-warning code {
+            background: #fde68a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Warning (shown before configuration) -->
+        <div id="setupWarning" class="setup-warning" style="display: none;">
+            <h3>⚙️ Setup Required</h3>
+            <p>
+                Please update the Firebase configuration below (scroll down to the script section).
+                Replace <code>YOUR_FIREBASE_CONFIG</code> with your actual Firebase project settings.
+            </p>
+        </div>
+
+        <div class="header">
+            <h1>
+                📺 TV Monitoring Dashboard
+                <span id="connectionStatus" class="connection-status disconnected">Connecting...</span>
+            </h1>
+            <p>Real-time status monitoring powered by Firebase</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h3>Total TVs</h3>
+                <div class="value" id="totalTvs">0</div>
+            </div>
+            <div class="stat-card success">
+                <h3>Online</h3>
+                <div class="value" id="onlineTvs">0</div>
+            </div>
+            <div class="stat-card success">
+                <h3>Playing</h3>
+                <div class="value" id="playingTvs">0</div>
+            </div>
+            <div class="stat-card danger">
+                <h3>Offline</h3>
+                <div class="value" id="offlineTvs">0</div>
+            </div>
+            <div class="stat-card warning">
+                <h3>Errors</h3>
+                <div class="value" id="errorTvs">0</div>
+            </div>
+        </div>
+
+        <div class="tv-grid" id="tvGrid">
+            <div class="loading pulse">Connecting to Firebase...</div>
+        </div>
+
+        <div class="refresh-info">
+            🔥 Real-time updates powered by Firebase | Last updated: <span id="lastUpdate">-</span>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ============================================================
+        // FIREBASE CONFIGURATION - UPDATE THIS WITH YOUR PROJECT INFO
+        // ============================================================
+        
+        const firebaseConfig = {
+            apiKey: "....................",
+            authDomain: "..................",
+            databaseURL: ".....................",
+            projectId: "tv-data-9c882",
+            storageBucket: "....................",
+            messagingSenderId: "49399467312",
+            appId: "1:49399467312:web:6fca8756b65dd76e4f0cf5",
+            measurementId: "G-NQW6QGG874"
+        };
+
+        // ============================================================
+        // Check if configuration is set
+        // ============================================================
+        const isConfigured = !firebaseConfig.apiKey.includes('YOUR_');
+
+        if (!isConfigured) {
+            document.getElementById('setupWarning').style.display = 'block';
+            console.error('⚠️ Firebase configuration not set! Please update firebaseConfig above.');
+        }
+
+        // ============================================================
+        // Initialize Firebase
+        // ============================================================
+        let database = null;
+        let tvsRef = null;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            tvsRef = database.ref('tvs');
+            
+            updateConnectionStatus(true);
+            console.log('✅ Firebase initialized successfully');
+        } catch (error) {
+            console.error('❌ Firebase initialization error:', error);
+            updateConnectionStatus(false);
+            document.getElementById('tvGrid').innerHTML = `
+                <div class="empty-state">
+                    <h2>⚠️ Firebase Connection Error</h2>
+                    <p>Unable to connect to Firebase. Check your configuration.</p>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // Global State
+        // ============================================================
+        let tvData = {};
+        const OFFLINE_TIMEOUT = 60; // seconds
+
+        // ============================================================
+        // Utility Functions
+        // ============================================================
+        
+        function updateConnectionStatus(isConnected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (isConnected) {
+                statusEl.textContent = '🟢 Connected';
+                statusEl.className = 'connection-status connected';
+            } else {
+                statusEl.textContent = '🔴 Disconnected';
+                statusEl.className = 'connection-status disconnected';
+            }
+        }
+
+        function formatTimeAgo(timestamp) {
+            const now = Math.floor(Date.now() / 1000);
+            const diff = now - timestamp;
+            
+            if (diff < 60) return `${diff}s ago`;
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            return `${Math.floor(diff / 86400)}d ago`;
+        }
+
+        function formatFileSize(mb) {
+            if (mb < 1024) return `${mb.toFixed(1)} MB`;
+            return `${(mb / 1024).toFixed(2)} GB`;
+        }
+
+        function getStatusBadgeClass(status, isOnline) {
+            if (!isOnline) return 'offline';
+            if (status === 'playing') return 'playing';
+            if (status === 'downloading') return 'downloading';
+            if (status === 'error') return 'error';
+            if (status === 'idle') return 'idle';
+            return 'idle';
+        }
+
+        function getCardClass(status, isOnline) {
+            if (!isOnline) return 'offline';
+            if (status === 'error') return 'error';
+            return '';
+        }
+
+        function getDisplayStatus(status, isOnline) {
+            if (!isOnline) return 'Disconnected';
+            if (status === 'playing') return 'Playing';
+            if (status === 'downloading') return 'Downloading';
+            if (status === 'error') return 'Error';
+            if (status === 'idle') return 'Connected - No Video';
+            return 'Connected';
+        }
+
+        function convertIpKey(key) {
+            // Convert Firebase key back to IP (underscore to dot)
+            return key.replace(/_/g, '.');
+        }
+
+        // ============================================================
+        // Data Processing
+        // ============================================================
+
+        function calculateStats() {
+            const stats = {
+                total: 0,
+                online: 0,
+                playing: 0,
+                offline: 0,
+                error: 0
+            };
+
+            const now = Math.floor(Date.now() / 1000);
+
+            Object.values(tvData).forEach(tv => {
+                stats.total++;
+                
+                const timeSinceUpdate = now - (tv.timestamp || 0);
+                const isOnline = timeSinceUpdate <= OFFLINE_TIMEOUT;
+
+                if (isOnline) {
+                    stats.online++;
+                    if (tv.status === 'playing') stats.playing++;
+                    if (tv.status === 'error') stats.error++;
+                } else {
+                    stats.offline++;
+                }
+            });
+
+            return stats;
+        }
+
+        function updateStats() {
+            const stats = calculateStats();
+            
+            document.getElementById('totalTvs').textContent = stats.total;
+            document.getElementById('onlineTvs').textContent = stats.online;
+            document.getElementById('playingTvs').textContent = stats.playing;
+            document.getElementById('offlineTvs').textContent = stats.offline;
+            document.getElementById('errorTvs').textContent = stats.error;
+        }
+
+        function updateTVGrid() {
+            const grid = document.getElementById('tvGrid');
+            const tvArray = Object.entries(tvData).map(([key, data]) => ({
+                key,
+                ip: convertIpKey(key),
+                ...data
+            }));
+
+            if (tvArray.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h2>📺 No TVs Connected</h2>
+                        <p>Waiting for TVs to send their first status update...</p>
+                        <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                            Make sure TVs are running with correct Firebase configuration.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by IP
+            tvArray.sort((a, b) => a.ip.localeCompare(b.ip));
+
+            const now = Math.floor(Date.now() / 1000);
+
+            grid.innerHTML = tvArray.map(tv => {
+                const timeSinceUpdate = now - (tv.timestamp || 0);
+                const isOnline = timeSinceUpdate <= OFFLINE_TIMEOUT;
+                const displayStatus = getDisplayStatus(tv.status, isOnline);
+                const badgeClass = getStatusBadgeClass(tv.status, isOnline);
+                const cardClass = getCardClass(tv.status, isOnline);
+
+                return `
+                    <div class="tv-card ${cardClass}">
+                        <div class="tv-header">
+                            <div class="tv-id">📺 ${tv.ip}</div>
+                            <span class="status-badge ${badgeClass}">${displayStatus}</span>
+                        </div>
+
+                        <div class="tv-info">
+                            <div class="info-row">
+                                <span class="info-label">Connection</span>
+                                <span class="info-value">${isOnline ? '🟢 Online' : '🔴 Offline'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Last Update</span>
+                                <span class="info-value">${formatTimeAgo(tv.timestamp || 0)}</span>
+                            </div>
+                            ${tv.video_size_mb ? `
+                            <div class="info-row">
+                                <span class="info-label">Video Size</span>
+                                <span class="info-value">${formatFileSize(tv.video_size_mb)}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        ${tv.video_name ? `
+                        <div class="video-name">
+                            <div class="video-name-label">Currently Playing</div>
+                            <div class="video-name-value">🎬 ${tv.video_name}</div>
+                        </div>
+                        ` : ''}
+
+                        ${tv.error_message ? `
+                        <div class="error-message">
+                            <div class="error-message-label">Error Details</div>
+                            <div class="error-message-value">${tv.error_message}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateLastUpdateTime() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+        }
+
+        function updateUI() {
+            updateStats();
+            updateTVGrid();
+            updateLastUpdateTime();
+        }
+
+        // ============================================================
+        // Firebase Real-time Listeners
+        // ============================================================
+
+        if (tvsRef) {
+            // Listen for all TV data changes
+            tvsRef.on('value', (snapshot) => {
+                console.log('📡 Received Firebase update');
+                const data = snapshot.val();
+                
+                if (data) {
+                    tvData = data;
+                } else {
+                    tvData = {};
+                }
+                
+                updateUI();
+            });
+
+            // Listen for individual TV additions
+            tvsRef.on('child_added', (snapshot) => {
+                console.log('➕ New TV added:', convertIpKey(snapshot.key));
+            });
+
+            // Listen for individual TV changes
+            tvsRef.on('child_changed', (snapshot) => {
+                console.log('🔄 TV updated:', convertIpKey(snapshot.key));
+            });
+
+            // Listen for individual TV removals
+            tvsRef.on('child_removed', (snapshot) => {
+                console.log('➖ TV removed:', convertIpKey(snapshot.key));
+            });
+
+            // Monitor connection state
+            const connectedRef = database.ref('.info/connected');
+            connectedRef.on('value', (snapshot) => {
+                const isConnected = snapshot.val();
+                updateConnectionStatus(isConnected);
+                console.log('🔗 Firebase connection state:', isConnected ? 'Connected' : 'Disconnected');
+            });
+        }
+
+        // ============================================================
+        // Periodic offline detection
+        // ============================================================
+        
+        setInterval(() => {
+            // Re-render to update "time ago" values and detect offline TVs
+            updateUI();
+        }, 5000); // Update every 5 seconds
+
+        // ============================================================
+        // Initial render
+        // ============================================================
+        
+        if (isConfigured) {
+            updateUI();
+        }
+
+        console.log('🎉 Dashboard loaded and listening for real-time updates');
+    </script>
+</body>
+</html>
