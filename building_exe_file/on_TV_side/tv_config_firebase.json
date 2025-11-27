@@ -1,0 +1,40 @@
+{
+  "google_drive_api_key": "YOUR_GOOGLE_DRIVE_API_KEY_HERE",
+  "main_folder_id": "YOUR_MAIN_FOLDER_ID_HERE",
+  
+  "firebase_credentials_path": "firebase-credentials.json",
+  "firebase_database_url": ".........",
+  
+  "download_folder": "C:\\TVVideos",
+  "vlc_path": "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
+  "log_file": "tv_video_player.log",
+  
+  "playback_settings": {
+    "infinite_loop": true,
+    "fullscreen": true,
+    "show_video_title": false,
+    "show_osd": false
+  },
+  
+  "monitoring_settings": {
+    "enabled": true,
+    "check_interval_seconds": 15,
+    "auto_restart_on_crash": true,
+    "heartbeat_interval": 30
+  },
+  
+  "_instructions": {
+    "firebase_credentials_path": "Path to Firebase service account JSON file",
+    "firebase_database_url": "Your Firebase Realtime Database URL from Firebase Console",
+    "heartbeat_interval": "How often to send status updates (in seconds). 30 = every 30 seconds",
+    "main_folder_id": "The main Google Drive folder that contains subfolders for each TV",
+    "setup_steps": [
+      "1. Create Firebase project at https://console.firebase.google.com",
+      "2. Enable Realtime Database",
+      "3. Download service account JSON (Project Settings > Service Accounts)",
+      "4. Put JSON file in same folder as script",
+      "5. Update firebase_credentials_path and firebase_database_url above",
+      "6. Run script!"
+    ]
+  }
+}
